@@ -117,6 +117,7 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | [`fifo_v2`](src/deprecated/fifo_v2.sv)                           | FIFO register with upper and lower threshold                                | *deprecated* | `fifo_v3`                                                                                       |
 | [`fifo_v3`](src/fifo_v3.sv)                                      | FIFO register with generic fill counts                                      | active       |                                                                                                 |
 | [`passthrough_stream_fifo`](src/passthrough_stream_fifo.sv)      | FIFO register with ready/valid interface and same-cycle push/pop when full  | active       |                                                                                                 |
+| [`ring_buffer`](src/ring_buffer.sv)                              | Ring buffer with sequential write and random-access read interfaces         | active       |                                                                                                 |
 | [`stream_fifo`](src/stream_fifo.sv)                              | FIFO register with ready/valid interface                                    | active       |                                                                                                 |
 | [`stream_fifo_optimal_wrap`](src/stream_fifo_optimal_wrap.sv)    | Wrapper that optimally selects either a spill register or a FIFO            | active       |                                                                                                 |
 | [`generic_fifo`](src/deprecated/generic_fifo.sv)                 | FIFO register without thresholds                                            | *deprecated* | `fifo_v3`                                                                                       |
@@ -125,7 +126,6 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | [`plru_tree`](src/plru_tree.sv)                                  | Pseudo least recently used tree                                             | active       |                                                                                                 |
 | [`unread`](src/unread.sv)                                        | Empty module to sink unconnected outputs into                               | active       |                                                                                                 |
 | [`read`](src/read.sv)                                            | Dummy module that prevents a signal from being removed during synthesis     | active       |                                                                                                 |
-
 
 ## Header Contents
 

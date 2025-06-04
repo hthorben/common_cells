@@ -108,6 +108,8 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | [`popcount`](src/popcount.sv)                                  | Combinatorial popcount (hamming weight)                                                                   | active       |               |
 | [`mem_to_banks_detailed`](src/mem_to_banks_detailed.sv)        | Split memory access over multiple parallel banks with detailed response signals                           | active       |               |
 | [`mem_to_banks`](src/mem_to_banks.sv)                          | Split memory access over multiple parallel banks                                                          | active       |               |
+| [`heaviside`](src/heaviside.sv)                                | Generates a mask obtained by applying the Heaviside step function                                         | active       |               |
+| [`boxcar`](src/boxcar.sv)                                      | Generates a mask obtained by applying a boxcar function                                                   | active       |               |
 
 ### Data Structures
 

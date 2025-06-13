@@ -68,6 +68,8 @@ sources:
       - src/sync_wedge.sv
       - src/unread.sv
       - src/read.sv
+      - src/stream_fork_blocking_dynamic.sv
+      - src/stream_fork_blocking.sv
       # Level 1
       - src/addr_decode_dync.sv
       - src/cdc_2phase.sv

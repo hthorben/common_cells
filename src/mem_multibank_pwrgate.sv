@@ -25,7 +25,7 @@ module mem_multibank_pwrgate #(
     parameter int unsigned ByteWidth = 32'd8,     // Width of a data byte
     parameter int unsigned NumPorts = 32'd2,      // Number of read and write ports
     parameter int unsigned Latency = 32'd1,       // Latency when the read data is available
-    parameter int unsigned NumLogicBanks = 32'd1, // Logic bank for Power Management
+    parameter int unsigned NumPhysicalBanks = 32'd1, // Logic bank for Power Management
     parameter              SimInit = "none",      // Simulation initialization
     parameter bit          PrintSimCfg = 1'b0,    // Print configuration
     parameter              ImplKey = "none",      // Reference to specific implementation
@@ -35,26 +35,24 @@ module mem_multibank_pwrgate #(
     parameter type         addr_t = logic [AddrWidth-1:0],
     parameter type         data_t = logic [DataWidth-1:0],
     parameter type         be_t = logic [BeWidth-1:0]
+
+    parameter int unsigned GatingGranularity = 1,
+    parameter int unsigned PWRSigWidth = (NWDivisor*NumPhysicalBanks*NumWideBanks) / GatingGranularity,
+    parameter type         impl_in_t    = logic
 ) (
     input  logic                      clk_i,        // Clock
     input  logic                      rst_ni,       // Asynchronous reset active low
     // input ports
-    input  logic  [     NumPorts-1:0] req_i,        // request
-    input  logic  [     NumPorts-1:0] we_i,         // write enable
-    input  addr_t [     NumPorts-1:0] addr_i,       // request address
-    input  data_t [     NumPorts-1:0] wdata_i,      // write data
-    input  be_t   [     NumPorts-1:0] be_i,         // write byte enable
-    input  logic  [NumLogicBanks-1:0] deepsleep_i,  // deep sleep enable
-    input  logic  [NumLogicBanks-1:0] powergate_i,  // power gate enable
+    input  logic  [     NumPorts-1:0] req_i,                // request
+    input  logic  [     NumPorts-1:0] we_i,                 // write enable
+    input  addr_t [     NumPorts-1:0] addr_i,               // request address
+    input  data_t [     NumPorts-1:0] wdata_i,              // write data
+    input  be_t   [     NumPorts-1:0] be_i,                 // write byte enable
+    input  impl_in_t  [NumPhysicalcBanks-1:0] impl_i,       // power gate enable
     // output ports
-    output data_t [     NumPorts-1:0] rdata_o       // read data
+    output data_t [     NumPorts-1:0] rdata_o               // read data
 );
 
-   // Implementation type for Power Gating and Deppesleep ports
-   typedef struct packed {
-      logic deepsleep;
-      logic powergate;
-   } impl_in_t;
 
 
    if (NumLogicBanks == 32'd0) begin : gen_no_logic_bank
@@ -74,7 +72,7 @@ module mem_multibank_pwrgate #(
       ) i_tc_sram_impl (
           .clk_i,
           .rst_ni,
-          .impl_i({deepsleep_i, powergate_i}),
+          .impl_i(impl_i),
           .impl_o(),
           .req_i,
           .we_i,
@@ -170,7 +168,7 @@ module mem_multibank_pwrgate #(
          ) i_tc_sram_impl (
              .clk_i,
              .rst_ni,
-             .impl_i ({deepsleep_i[BankIdx], powergate_i[BankIdx]}),
+             .impl_i (impl_i[BankIdx]),
              .impl_o (),
              .req_i  (req_cut[BankIdx]),
              .we_i   (we_cut[BankIdx]),

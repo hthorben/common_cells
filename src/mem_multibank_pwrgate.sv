@@ -34,30 +34,29 @@ module mem_multibank_pwrgate #(
     parameter int unsigned BeWidth = (DataWidth + ByteWidth - 32'd1) / ByteWidth, // ceil_div
     parameter type         addr_t = logic [AddrWidth-1:0],
     parameter type         data_t = logic [DataWidth-1:0],
-    parameter type         be_t = logic [BeWidth-1:0]
+    parameter type         be_t = logic [BeWidth-1:0],
 
-    parameter int unsigned GatingGranularity = 1,
-    parameter int unsigned PWRSigWidth = (NWDivisor*NumPhysicalBanks*NumWideBanks) / GatingGranularity,
+    parameter int unsigned NumPhysBanks = 1,
     parameter type         impl_in_t    = logic
 ) (
     input  logic                      clk_i,        // Clock
     input  logic                      rst_ni,       // Asynchronous reset active low
     // input ports
-    input  logic  [     NumPorts-1:0] req_i,                // request
-    input  logic  [     NumPorts-1:0] we_i,                 // write enable
-    input  addr_t [     NumPorts-1:0] addr_i,               // request address
-    input  data_t [     NumPorts-1:0] wdata_i,              // write data
-    input  be_t   [     NumPorts-1:0] be_i,                 // write byte enable
-    input  impl_in_t  [NumPhysicalcBanks-1:0] impl_i,       // power gate enable
+    input  logic      [     NumPorts-1:0] req_i,                // request
+    input  logic      [     NumPorts-1:0] we_i,                 // write enable
+    input  addr_t     [     NumPorts-1:0] addr_i,               // request address
+    input  data_t     [     NumPorts-1:0] wdata_i,              // write data
+    input  be_t       [     NumPorts-1:0] be_i,                 // write byte enable
+    input  impl_in_t  [NumPhysBanks-1:0] impl_i,       // power gate enable
     // output ports
-    output data_t [     NumPorts-1:0] rdata_o               // read data
+    output data_t     [     NumPorts-1:0] rdata_o               // read data
 );
 
 
 
-   if (NumLogicBanks == 32'd0) begin : gen_no_logic_bank
-      $fatal("Error: %d logic banks are not supported", NumLogicBanks);
-   end else if (NumLogicBanks == 32'd1) begin : gen_simple_sram
+   if (NumPhysBanks == 32'd0) begin : gen_no_logic_bank
+      $fatal("Error: %d logic banks are not supported", NumPhysBanks);
+   end else if (NumPhysBanks == 32'd1) begin : gen_simple_sram
       tc_sram_impl #(
           .NumWords   (NumWords),
           .DataWidth  (DataWidth),
@@ -68,7 +67,8 @@ module mem_multibank_pwrgate #(
           .PrintSimCfg(PrintSimCfg),
           .ImplKey    (ImplKey),
           .impl_in_t  (impl_in_t),
-          .impl_out_t (impl_in_t)
+          .impl_out_t (impl_in_t),
+          .Pwr_Sigs    (1)
       ) i_tc_sram_impl (
           .clk_i,
           .rst_ni,
@@ -83,20 +83,20 @@ module mem_multibank_pwrgate #(
       );
 
    end else begin : gen_logic_bank  // block: gen_simple_sram
-      localparam int unsigned LogicBankSize = NumWords / NumLogicBanks;
-      localparam int unsigned BankSelWidth = (NumLogicBanks > 32'd1) ?
-                                             $clog2(NumLogicBanks) : 32'd1;
+      localparam int unsigned LogicBankSize = NumWords / NumPhysBanks;
+      localparam int unsigned BankSelWidth = (NumPhysBanks > 32'd1) ?
+                                             $clog2(NumPhysBanks) : 32'd1;
 
       if (LogicBankSize != 2 ** (AddrWidth - BankSelWidth))
             $error("Logic Bank size is not a power of two: UNSUPPORTED!");
 
       // Signals from/to logic banks
-      logic  [NumLogicBanks-1:0][NumPorts-1:0]                             req_cut;
-      logic  [NumLogicBanks-1:0][NumPorts-1:0]                             we_cut;
-      logic  [NumLogicBanks-1:0][NumPorts-1:0][AddrWidth-BankSelWidth-1:0] addr_cut;
-      data_t [NumLogicBanks-1:0][NumPorts-1:0]                             wdata_cut;
-      be_t   [NumLogicBanks-1:0][NumPorts-1:0]                             be_cut;
-      data_t [NumLogicBanks-1:0][NumPorts-1:0]                             rdata_cut;
+      logic  [NumPhysBanks-1:0][NumPorts-1:0]                             req_cut;
+      logic  [NumPhysBanks-1:0][NumPorts-1:0]                             we_cut;
+      logic  [NumPhysBanks-1:0][NumPorts-1:0][AddrWidth-BankSelWidth-1:0] addr_cut;
+      data_t [NumPhysBanks-1:0][NumPorts-1:0]                             wdata_cut;
+      be_t   [NumPhysBanks-1:0][NumPorts-1:0]                             be_cut;
+      data_t [NumPhysBanks-1:0][NumPorts-1:0]                             rdata_cut;
 
       // Signals to select the right bank
       logic  [NumPorts-1:0][BankSelWidth-1:0]                             bank_sel;
@@ -140,7 +140,7 @@ module mem_multibank_pwrgate #(
 
       // Write data Mux Logic
       //
-      for (genvar BankIdx = 0; BankIdx < NumLogicBanks; BankIdx++) begin : gen_logic_bank
+      for (genvar BankIdx = 0; BankIdx < NumPhysBanks; BankIdx++) begin : gen_logic_bank
          for (genvar PortIdx = 0; PortIdx < NumPorts; PortIdx++) begin: gen_port_write_logic
             // DEMUX the input signals to the correct logic bank
             // Assign req channel to the correct logic bank
@@ -164,7 +164,8 @@ module mem_multibank_pwrgate #(
              .PrintSimCfg(PrintSimCfg),
              .ImplKey    (ImplKey),
              .impl_in_t  (impl_in_t),
-             .impl_out_t (impl_in_t)
+             .impl_out_t (impl_in_t),
+             .Pwr_Sigs   (1)
          ) i_tc_sram_impl (
              .clk_i,
              .rst_ni,
@@ -179,18 +180,5 @@ module mem_multibank_pwrgate #(
          );
       end : gen_logic_bank
    end
-
-   // Trigger warnings when power signals (deepsleep_i and powergate_i) are not connected.
-   // Usually those signals must be linked through the UPF.
-`ifndef VERILATOR
-`ifndef SYNTHESIS
-   initial begin
-      assert (!$isunknown(deepsleep_i))
-        else $warning("deepsleep_i has some unconnected signals");
-      assert (!$isunknown(powergate_i))
-        else $warning("powergate_i has some unconnected signals");
-   end
-`endif
-`endif
 
 endmodule  //endmodule: mem_multibank_pwrgate

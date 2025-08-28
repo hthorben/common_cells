@@ -37,7 +37,8 @@ module mem_multibank_pwrgate #(
     parameter type         be_t = logic [BeWidth-1:0],
 
     parameter int unsigned NumPhysBanks = 1,
-    parameter type         impl_in_t    = logic
+    parameter type         impl_in_t    = logic,
+    parameter int unsigned Pwr_Sigs     = 0
 ) (
     input  logic                      clk_i,        // Clock
     input  logic                      rst_ni,       // Asynchronous reset active low
@@ -68,7 +69,7 @@ module mem_multibank_pwrgate #(
           .ImplKey    (ImplKey),
           .impl_in_t  (impl_in_t),
           .impl_out_t (impl_in_t),
-          .Pwr_Sigs    (1)
+          .Pwr_Sigs    (Pwr_Sigs)
       ) i_tc_sram_impl (
           .clk_i,
           .rst_ni,
@@ -165,7 +166,7 @@ module mem_multibank_pwrgate #(
              .ImplKey    (ImplKey),
              .impl_in_t  (impl_in_t),
              .impl_out_t (impl_in_t),
-             .Pwr_Sigs   (1)
+             .Pwr_Sigs   (Pwr_Sigs)
          ) i_tc_sram_impl (
              .clk_i,
              .rst_ni,

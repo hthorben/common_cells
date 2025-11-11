@@ -179,7 +179,7 @@ module mem_multibank_pwrgate #(
              .addr_i (addr_cut[BankIdx]),
              .wdata_i(wdata_cut[BankIdx]),
              .be_i   (be_cut[BankIdx]),
-	     .disable_auto_clk_gate(.disable_auto_clk_gate[BankIdx]),
+	     .disable_auto_clk_gate(disable_auto_clk_gate[BankIdx]),
              .rdata_o(rdata_cut[BankIdx])
          );
       end : gen_logic_bank

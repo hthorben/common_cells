@@ -49,7 +49,7 @@ module mem_multibank_pwrgate #(
     input  data_t     [     NumPorts-1:0] wdata_i,              // write data
     input  be_t       [     NumPorts-1:0] be_i,                 // write byte enable
     input  impl_in_t  [NumPhysBanks-1:0] impl_i,       // power gate enable
-    input  logic                         disable_auto_clk_gate,
+    input  logic      [NumPhysBanks-1:0] disable_auto_clk_gate,
     // output ports
     output data_t     [     NumPorts-1:0] rdata_o               // read data
 );
@@ -179,6 +179,7 @@ module mem_multibank_pwrgate #(
              .addr_i (addr_cut[BankIdx]),
              .wdata_i(wdata_cut[BankIdx]),
              .be_i   (be_cut[BankIdx]),
+	     .disable_auto_clk_gate(.disable_auto_clk_gate[BankIdx]),
              .rdata_o(rdata_cut[BankIdx])
          );
       end : gen_logic_bank
